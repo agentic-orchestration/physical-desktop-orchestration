@@ -28,6 +28,7 @@ Jump to:
 [More machines](#scaling-to-more-machines) ·
 [Bridge setup](#preparing-the-bridge-host) ·
 [Pairing](#pairing-the-one-manual-step) ·
+[The scripts](#the-scripts) ·
 [Bring your own AI](#bring-your-own-ai) ·
 [Gotchas](#gotchas-that-cost-real-time) ·
 [FAQ](#faq) ·
@@ -302,22 +303,55 @@ process can answer it regardless of privilege. Budget one short manual action
 per client and no more. After bonding, reconnection needs no consent at all,
 which is precisely how a real keyboard wakes a sleeping machine.
 
+## The scripts
+
+Demonstration implementations of everything above. Each is parameterised by
+environment variable and carries no machine-specific values.
+
+| Path | What it does |
+| --- | --- |
+| `src/hid_bridge.py` | The service. Registers the HID record, serves both L2CAP ports, answers pairing, and turns control-FIFO lines into keyboard and pointer reports. |
+| `scripts/setup-bridge.sh` | Applies the three system changes, taking a backup and prompting first, then prints the adapter class so you can check it. |
+| `scripts/pair-window.sh` | Opens a timed pairing window and closes it again on exit. |
+| `scripts/hid-send.sh` | Writes one command into the control FIFO. |
+| `scripts/capture.sh` | Grabs a single frame using the flags explained earlier. |
+| `scripts/capture-probe.sh` | Lists capture nodes and the formats each one supports. |
+
+A first run looks roughly like this:
+
+```sh
+sudo ./scripts/setup-bridge.sh        # once per bridge host, and it is invasive
+sudo python3 src/hid_bridge.py &      # root, because the HID ports are privileged
+./scripts/pair-window.sh 120          # then confirm on the client, by hand
+./scripts/hid-send.sh status
+./scripts/hid-send.sh type "hello."
+./scripts/capture.sh shot.png         # look at what actually happened
+```
+
+Status worth stating plainly, since it affects how much you should trust these
+files. The report descriptor parses to a balanced structure declaring report
+ids 1 and 2, the SDP record is well-formed and carries that descriptor with
+both port numbers, and the shell scripts are syntax-checked with their refusal
+paths exercised. The combined keyboard and mouse build has not been run against
+real hardware, so treat the pointer collection in particular as the part most
+likely to need debugging on first contact.
+
 ## Bring your own AI
 
-This repository ships knowledge rather than a product. Everything genuinely
-hard to rediscover is written down: the report descriptor shape, the daemon
-flags, the port numbers, the pairing boundary, the capture invocation. Ordinary
-programming is left to you.
+The code here is a reference rather than a product. Everything genuinely hard
+to rediscover is written down: the report descriptor shape, the daemon flags,
+the port numbers, the pairing boundary, the capture invocation. The scripts
+show one way of assembling those parts.
 
 Every environment differs in distribution, init system, device paths,
-permissions and desired protocol, so a generic implementation would fit none of
-them well. A coding agent with this document in context can scaffold a service
-for your machine in minutes, and it will fit better than anything shipped here
+permissions and desired control protocol, so expect to adapt rather than
+install. A coding agent given this document and these files can fit them to
+your machine quickly, and that will serve you better than anything shipped here
 could.
 
-Suggested prompt shape: give your agent this README plus the relevant file in
-`docs/`, state your distribution and how you want to drive it, then ask for a
-service and a client. Review what it writes before running it with privilege,
+Suggested prompt shape: give your agent this README plus `src/hid_bridge.py`,
+state your distribution and how you want to drive it, then ask for the changes
+your setup needs. Review what it writes before running it with privilege,
 because this component types into your computers.
 
 ## Gotchas that cost real time
