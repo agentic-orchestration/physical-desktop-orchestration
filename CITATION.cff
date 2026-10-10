@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+title: physical-desktop-orchestration
+message: "If you use this work, please cite it using the metadata from this file."
+type: software
+authors:
+  - name: Aesthetic Vulpes
+    alias: didvc
+    website: https://github.com/didvc
+repository-code: https://github.com/agentic-orchestration/physical-desktop-orchestration
+license:
+  - MIT
+  - CC-BY-4.0
+version: 0.1.0
+date-released: 2026-10-10
+abstract: >
+  Field notes for driving an unmodified computer from an automation agent,
+  using a Linux machine in the Bluetooth HID device role to deliver keystrokes
+  and pointer motion, and a USB video capture device to read the target's
+  screen back as frames. The target needs no driver, agent, service or account,
+  so the same method reaches a locked desktop, a firmware menu, a console or a
+  phone. The documentation covers the system-level changes a bridge host needs,
+  the HID report descriptor and wire format for a combined keyboard and mouse,
+  how many radios a given number of clients requires, the manual pairing step
+  that cannot be automated, and the failure modes of each. Code is illustrative
+  rather than a product, on the expectation that readers scaffold an
+  implementation for their own environment with a coding agent.
+keywords:
+  - bluetooth
+  - bluez
+  - hid
+  - human-interface-device
+  - hid-report-descriptor
+  - keyboard-emulation
+  - l2cap
+  - desktop-automation
+  - agentic-ai
+  - computer-use
+  - video-capture
+  - v4l2
+  - uvc
+  - hdmi-capture
+  - linux

@@ -1,0 +1,15 @@
+# editor and OS cruft
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.idea/
+.vscode/
+
+# local scratch that should never be published
+scratch/
+*.local
+*.secret
+
+# The figure PNGs under docs/figures are committed on purpose: the README has
+# to render them on the web, where no typst toolchain exists to build them.
