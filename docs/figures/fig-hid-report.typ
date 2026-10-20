@@ -1,91 +1,91 @@
 #import "_common.typ": *
-#set page(width: 184mm, height: 116mm, margin: 0mm, fill: paper)
-#set text(font: "DejaVu Sans", size: 8.5pt, fill: ink)
 
-#let byte(v, accent) = box(
-  width: 13.4mm, height: 9mm, radius: 1.4mm,
-  stroke: 0.7pt + accent, fill: accent.lighten(93%),
-)[
-  #set align(center + horizon)
-  #text(font: "DejaVu Sans Mono", size: 9pt, weight: "bold", fill: accent.darken(22%))[#v]
-]
+#let W = 184mm
+#let H = 118mm
+#show: setup.with(W, H)
 
-#let pitch = 15.0mm
-#let x0 = 6mm
+#frame(W, H,
+  label: [Figure 02 · HID reports],
+  solid: [Report], outline: [bytes.],
+  lede: [what actually goes over the air — \ written to PSM 19, unacknowledged.],
+  tags: [press · release · chord],
+  vertical: ([Interrupt], [Channel], [2026]),
+  foot-left: [Fire and forget · nothing acknowledges a report],
+  foot-right: [Keyboard + mouse · one descriptor · one bond],
+)
 
-#let row(y, items) = {
-  for (i, it) in items.enumerate() {
-    place(top + left, dx: x0 + pitch * i, dy: y, byte(it.at(0), it.at(1)))
-  }
+#let X0 = 62mm
+#let XW = 108mm  // diagram width
+#let pitch = 10.8mm
+#let cw = 9.6mm  // cell width
+
+// One byte: value over a hairline, coloured when it carries data.
+#let byte(i, y, v, accent) = {
+  let x = X0 + pitch * i
+  let c = if accent == none { rule-c } else { accent }
+  at(x, y, block(width: cw, height: 6mm, align(center + horizon,
+    text(fill: if accent == none { faint } else { ink }, mono(size: 8pt)[#v]))))
+  hline(x, x + cw, y + 6.6mm, stroke: (if accent == none { 0.4pt } else { 0.8pt }) + c)
 }
 
-// a bracket spanning byte indices a..b with a caption
+#let row(y, items) = for (i, it) in items.enumerate() { byte(i, y, it.at(0), it.at(1)) }
+
+// Bracket under byte indices a..b with a tracked caption.
 #let span(y, a, b, label, accent) = {
-  let xa = x0 + pitch * a
-  let xb = x0 + pitch * b + 13.4mm
-  place(top + left, line(start: (xa, y), end: (xb, y), stroke: 0.7pt + accent))
-  place(top + left, line(start: (xa, y), end: (xa, y - 1.4mm), stroke: 0.7pt + accent))
-  place(top + left, line(start: (xb, y), end: (xb, y - 1.4mm), stroke: 0.7pt + accent))
-  place(top + left, dx: xa, dy: y + 1.0mm,
-    box(width: xb - xa)[
-      #set align(center)
-      #text(size: 6.9pt, fill: accent.darken(10%))[#label]
-    ])
+  let xa = X0 + pitch * a
+  let xb = X0 + pitch * b + cw
+  let c = if accent == none { faint } else { accent.darken(20%) }
+  hline(xa, xb, y, stroke: 0.4pt + c)
+  vline(xa, y, y - 1mm, stroke: 0.4pt + c)
+  vline(xb, y, y - 1mm, stroke: 0.4pt + c)
+  at(xa - 4mm, y + 1.4mm, block(width: xb - xa + 8mm, align(center,
+    caps(size: 4.2pt, track: 0.18em, fill: c, label))))
 }
 
-#place(top + left, dx: 4mm, dy: 3mm,
-  text(weight: "bold", size: 10.5pt)[What actually goes over the air])
-#place(top + left, dx: 4mm, dy: 8.4mm,
-  text(size: 7.6pt, fill: muted)[Every report is written to the interrupt channel (PSM 19). Fire and forget: nothing acknowledges it.])
+#let section(y, idx, accent, name) = {
+  at(X0, y, { index(accent, idx); h(2.4mm); caps(size: 5pt, track: 0.35em, fill: ink)[#name] })
+  hline(X0, X0 + XW, y + 4.2mm)
+}
 
-// ---------- keyboard ----------
-#place(top + left, dx: 4mm, dy: 16mm,
-  text(weight: "bold", size: 8.4pt, fill: blue)[Keyboard · Report ID 1])
+#let note(y, body) = at(X0, y, block(width: XW, text(size: 6.2pt, fill: muted, body)))
 
-#row(21mm, (
-  ("A1", hair), ("01", hair), ("mod", blue), ("00", hair),
-  ("k1", blue), ("k2", blue), ("k3", blue), ("k4", blue), ("k5", blue), ("k6", blue),
+// ── keyboard ─────────────────────────────────────────────────────────────
+#section(10mm, "01", sky, [Keyboard · report id 1])
+#row(17mm, (
+  ("A1", none), ("01", none), ("mod", sky), ("00", none),
+  ("k1", sky), ("k2", sky), ("k3", sky), ("k4", sky), ("k5", sky), ("k6", sky),
 ))
-#span(33mm, 0, 1, "transaction header + report id", muted)
-#span(33mm, 2, 2, "modifiers", blue)
-#span(33mm, 3, 3, "reserved", muted)
-#span(33mm, 4, 9, "up to six usages held down at the same time", blue)
+#span(26.6mm, 0, 1, [header + id], none)
+#span(26.6mm, 2, 2, [modifiers], sky)
+#span(26.6mm, 3, 3, [reserved], none)
+#span(26.6mm, 4, 9, [up to six usages held at once], sky)
+#note(33mm)[A keypress is two reports: one with the usage set, one with it cleared. That release is what makes a repeated letter register twice.]
 
-#place(top + left, dx: 6mm, dy: 40mm, box(width: 172mm,
-  text(size: 7.2pt, fill: muted)[A keypress is two reports: one with the usage set, one with it cleared. That release is what makes a repeated letter register twice.]))
-
-// ---------- mouse ----------
-#place(top + left, dx: 4mm, dy: 50mm,
-  text(weight: "bold", size: 8.4pt, fill: amber)[Mouse · Report ID 2 — same descriptor, same bond])
-
-#row(55mm, (
-  ("A1", hair), ("02", hair), ("btn", amber), ("dx", amber), ("dy", amber), ("whl", amber),
+// ── mouse ────────────────────────────────────────────────────────────────
+#section(44mm, "02", amber, [Mouse · report id 2 · same descriptor, same bond])
+#row(51mm, (
+  ("A1", none), ("02", none), ("btn", amber), ("dx", amber), ("dy", amber), ("whl", amber),
 ))
-#span(67mm, 0, 1, "header + report id", muted)
-#span(67mm, 2, 2, "buttons", amber)
-#span(67mm, 3, 4, "signed −127…127", amber)
-#span(67mm, 5, 5, "wheel", amber)
+#span(60.6mm, 0, 1, [header + id], none)
+#span(60.6mm, 2, 2, [buttons], amber)
+#span(60.6mm, 3, 4, [signed −127…127], amber)
+#span(60.6mm, 5, 5, [wheel], amber)
+#note(67mm)[Movement is a delta per report, not a coordinate, so crossing the screen is a stream of small reports. An absolute-pointer collection is what lets you say “go to x, y”.]
 
-#place(top + left, dx: 6mm, dy: 74mm, box(width: 172mm,
-  text(size: 7.2pt, fill: muted)[Movement is a delta per report, not a coordinate, so crossing the screen is a stream of small reports. An absolute-pointer collection, instead of a relative one, is what lets you say "go to x, y".]))
-
-// ---------- modifier bits ----------
-#place(top + left, dx: 4mm, dy: 86mm,
-  text(weight: "bold", size: 8.4pt, fill: blue)[The modifier byte, bit by bit])
-
+// ── modifier bits ────────────────────────────────────────────────────────
+#section(78mm, "03", lilac, [The modifier byte, bit by bit])
 #let mods = (
   ("0x01", "L-Ctrl"), ("0x02", "L-Shift"), ("0x04", "L-Alt"), ("0x08", "L-GUI"),
   ("0x10", "R-Ctrl"), ("0x20", "R-Shift"), ("0x40", "R-Alt"), ("0x80", "R-GUI"),
 )
+#let mp = XW / 8
 #for (i, m) in mods.enumerate() {
-  place(top + left, dx: 6mm + 21.6mm * i, dy: 91mm,
-    box(width: 20mm, height: 10mm, radius: 1.4mm,
-        stroke: 0.6pt + hair, fill: rgb("#f6f8fb"))[
-      #set align(center + horizon)
-      #stack(spacing: 0.6mm,
-        text(font: "DejaVu Sans Mono", size: 7.4pt, weight: "bold", fill: blue)[#m.at(0)],
-        text(size: 6.6pt, fill: muted)[#m.at(1)])
-    ])
+  let x = X0 + mp * i
+  at(x, 85mm, block(width: mp - 1.6mm, spacing: 0pt)[
+    #mono(size: 7pt)[#m.at(0)]
+    #v(1.2mm)
+    #caps(size: 4.2pt, track: 0.18em)[#m.at(1)]
+  ])
+  hline(x, x + mp - 1.6mm, 93.6mm, stroke: 0.6pt + lilac)
 }
-#place(top + left, dx: 6mm, dy: 103.5mm, box(width: 172mm,
-  text(size: 7.2pt, fill: muted)[Modifiers live in the same report as the key, so a chord is one report with both fields set — never two separate events.]))
+#note(97mm)[Modifiers live in the same report as the key, so a chord is one report with both fields set — never two separate events.]

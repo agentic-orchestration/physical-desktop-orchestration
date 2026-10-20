@@ -1,46 +1,59 @@
 #import "_common.typ": *
-#set page(width: 184mm, height: 104mm, margin: 0mm, fill: paper)
-#set text(font: "DejaVu Sans", size: 8.5pt, fill: ink)
 
-#place(top + left, dx: 4mm, dy: 3mm,
-  text(weight: "bold", size: 10.5pt)[One radio, many clients, one link at a time])
-#place(top + left, dx: 4mm, dy: 8.6mm, box(width: 176mm,
-  text(size: 7.6pt, fill: muted)[Each client is bonded once and remembered. Switching drops one link and raises another.]))
+#let W = 184mm
+#let H = 84mm
+#show: setup.with(W, H)
 
-#place(top + left, dx: 6mm, dy: 36mm,
-  box(width: 54mm, height: 30mm, radius: 2.2mm,
-      stroke: 0.7pt + blue, fill: blue.lighten(93%), inset: 3.2mm)[
-    #text(weight: "bold", size: 9pt, fill: blue.darken(22%))[Bridge]
-    #linebreak()
-    #text(size: 7pt, fill: muted)[one adapter, one descriptor]
-    #v(1.4mm)
-    #text(size: 7.4pt)[Keyboard and mouse ride \ the same bond.]
-  ])
+#frame(W, H,
+  label: [Figure 03 · Clients],
+  solid: [One], outline: [radio.],
+  lede: [many clients, one link at a time — \ each bonded once and remembered.],
+  tags: [bond · switch · drop],
+  vertical: ([One], [Radio], [2026]),
+  foot-left: [One radio on the bridge · one radio per client],
+  foot-right: [Simultaneous links · unproven],
+)
 
-#let client(y, label, sub, active) = {
-  let a = if active { green } else { hair }
-  place(top + left, dx: 122mm, dy: y,
-    box(width: 56mm, height: 20mm, radius: 2mm,
-        stroke: 0.7pt + a, fill: if active { green.lighten(93%) } else { rgb("#f7f8fa") },
-        inset: 3mm)[
-      #text(weight: "bold", size: 8.2pt, fill: if active { green.darken(20%) } else { muted })[#label]
-      #linebreak()
-      #text(size: 6.9pt, fill: muted)[#sub]
-    ])
-  let ly = y + 10mm
+// ── bridge ───────────────────────────────────────────────────────────────
+#let BX = 62mm
+#let BW = 34mm
+#at(BX, 22mm, index(sky, "01"))
+#hline(BX, BX + BW, 26.5mm)
+#at(BX, 29.1mm, block(width: BW, spacing: 0pt)[
+  #set par(leading: 0.55em)
+  #text(size: 14pt, weight: 250, tracking: -0.02em)[Bridge]
+  #v(1.4mm)
+  #caps(size: 4.4pt, track: 0.2em)[one adapter · one descriptor]
+  #v(3.2mm)
+  #text(size: 6.4pt, fill: muted)[Keyboard and mouse ride the same bond. Switching drops one link and raises another.]
+])
+#at(BX, 58mm, block(width: BW, text(size: 5.4pt, fill: faint)[
+  Several live links would put the bridge in several piconets, which controllers support unevenly.]))
+
+// ── clients ──────────────────────────────────────────────────────────────
+#let CX = 138mm
+#let CW = 30mm
+#let OX = BX + BW + 2mm  // where the links leave the bridge
+#let OY = 33.6mm
+
+#let client(y, idx, name, sub, active) = {
+  at(CX, y, index(if active { mint } else { ink.transparentize(75%) }, idx))
+  hline(CX, CX + CW, y + 4.5mm)
+  at(CX, y + 6.6mm, stack(spacing: 2mm,
+    text(size: 11pt, weight: 250, tracking: -0.02em,
+         fill: if active { ink } else { faint })[#name],
+    caps(size: 4.4pt, track: 0.2em, fill: if active { mint.darken(30%) } else { faint })[#sub]))
+  let ty = y + 8.8mm
   if active {
-    place(top + left, line(start: (60mm, 51mm), end: (121mm, ly), stroke: 1.4pt + green))
-    place(top + left, dx: 82mm, dy: ly - 7.4mm,
-      text(size: 7pt, weight: "bold", fill: green.darken(12%))[active link])
+    at(0mm, 0mm, line(start: (OX, OY), end: (CX - 3mm, ty), stroke: 0.6pt + mint.darken(20%)))
   } else {
-    place(top + left, line(start: (60mm, 51mm), end: (121mm, ly),
-      stroke: (paint: hair, thickness: 1pt, dash: "dashed")))
+    at(0mm, 0mm, line(start: (OX, OY), end: (CX - 3mm, ty),
+      stroke: (paint: ink.transparentize(70%), thickness: 0.4pt, dash: (1.2pt, 1.6pt))))
   }
 }
 
-#client(16mm, "Client A", "bonded · idle", false)
-#client(41mm, "Client B", "bonded · connected", true)
-#client(66mm, "Client C", "bonded · idle", false)
+#client(10mm, "A", "Client A", [bonded · idle], false)
+#client(31mm, "B", "Client B", [bonded · connected], true)
+#client(52mm, "C", "Client C", [bonded · idle], false)
 
-#place(top + left, dx: 4mm, dy: 91mm, box(width: 176mm,
-  text(size: 7.2pt, fill: muted)[*Count your hardware this way*: one radio on the bridge covers every client and every HID role, while each client machine needs a radio of its own. Holding several links live at once would make the bridge a member of several piconets, which controllers support unevenly, so treat simultaneous clients as unproven rather than routine.]))
+#at(104mm, 30mm, caps(size: 4.6pt, track: 0.3em, fill: mint.darken(30%))[active link])
